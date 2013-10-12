@@ -96,6 +96,7 @@
                (unbound-range 1 flow-rate)))))
 
 
+
 ;; Splatter generation
 ;; -------------------
 ;;
@@ -112,14 +113,17 @@
   (let [magnitude (util/vec-abs velocity-vector)]
     (> magnitude cut-off)))
 
-
-(defn splatter-point [point cut-off damp-const gravity]
-  (let [[position velocity paint] (partition-all 3 point)]
+(defn splatter-point
+  [point cut-off velocity-damp-const paint-damp-const gravity]
+  (let [[position velocity [paint]] (partition-all 3 point)]
     (if (does-impact-splatter? velocity cut-off)
       (let [reflect-velocity (util/vec-reflect velocity)
-            dampend-veloctiy (util/vec-mult-const reflect-velocity damp-const)
+            dampend-veloctiy (util/vec-mult-const reflect-velocity
+                                                  velocity-damp-const)
             projected (point-projection
-                       (concat position dampend-veloctiy [1])    ;; paint amount hardcoded
+                       (concat position
+                               dampend-veloctiy
+                               [(* paint paint-damp-const)])
                        gravity)]
         projected)
       nil)))
@@ -127,9 +131,12 @@
 (defn paths-to-points [paths]
   (apply concat paths))
 
-(defn splatter [paths cut-off damp-const gravity]
+(defn splatter
+  [paths cut-off velocity-damp-const paint-damp-const gravity]
   (filter #(not (nil? %))
-          (map #(splatter-point % cut-off damp-const gravity)
+          (map #(splatter-point % cut-off
+                                velocity-damp-const
+                                paint-damp-const gravity)
                (paths-to-points paths))))
 
 (defn splatter-cut-off [paths percentile]

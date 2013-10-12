@@ -59,8 +59,8 @@
 
   (testing "End to end splatter"
     (let [paths [[[0 0 0 1 -5 0 1]]]
-          expected-splatter-points [[10.0 0 0.0 1.0 -5.0 0.0 1]]
-          splatter-points (splatter paths 0 1.0 [0 -1 0])]
+          expected-splatter-points [[10.0 0 0.0 1.0 -5.0 0.0 1.0]]
+          splatter-points (splatter paths 0 1.0 1.0 [0 -1 0])]
       (is (= splatter-points expected-splatter-points)))))
 
 

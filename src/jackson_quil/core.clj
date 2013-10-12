@@ -33,7 +33,11 @@
 ;; multiplied with during splatter calculation. it should be in
 ;; between 0.0 and 1.0. it is 3.0 at the moment because gravity is
 ;; super strong and i'm not sure how i want to tweak all params.
-(def splatter-dampening 3.0)
+(def splatter-velocity-dampening 3.0)
+
+;; when an impact point emits splatter to work out the amount of paint
+;; in the splatter we multiply the impact's amount of paint with this constant.
+(def splatter-paint-dampening 0.5)
 
 ;; this is the 'flow rate' of the paint. this translates as how much
 ;; paint each point along the stroke recieves as function of the
@@ -63,7 +67,10 @@
                          @strokes)))
   (let [cut-off (gen/splatter-cut-off @streaks splatter-percentile)]
     (atom-set! splatter
-               (doall (gen/splatter @streaks cut-off splatter-dampening gravity))))
+               (doall (gen/splatter @streaks cut-off
+                                    splatter-velocity-dampening
+                                    splatter-paint-dampening
+                                    gravity))))
   nil)
 
 (defn align-camera []
