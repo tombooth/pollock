@@ -65,3 +65,16 @@
           splatter-points (splatter paths 0 1.0 [0 -1 0])]
       (is (= splatter-points expected-splatter-points)))))
 
+
+(deftest paint-test
+  (testing "Paint added according to flow rate"
+    (let [path [[0] [1] [2] [3]]
+          expected-with-paint [[0 10]
+                               [1 5]
+                               [2 10/3]
+                               [3 5/2]]
+          flow-rate 1
+          initial 10
+          with-paint (add-paint path flow-rate initial)]
+    (is (= with-paint expected-with-paint)))))
+

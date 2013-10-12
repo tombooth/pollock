@@ -33,6 +33,7 @@
 
 (defn path [path]
   (q/push-style)
+  (q/stroke-cap :round)
   (q/begin-shape :lines)
   (doall (util/map-2 path-slice path))
   (q/end-shape)

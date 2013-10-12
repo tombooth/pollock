@@ -105,12 +105,19 @@
 ;; and then each point along the path will get allocated a decreasing
 ;; amount of paint from that total.
 
+(defn- unbound-range [start step]
+  (cons start (lazy-seq (unbound-range (+ start step) step))))
 
-(defn add-paint-to-point [point]
-  (conj point 1))
-
-(defn add-paint [path]
-  (map add-paint-to-point path))
+(defn add-paint
+  
+  ([path flow-rate]
+     (add-paint path flow-rate (util/random-between 1 20)))
+  
+  ([path flow-rate initial-amount]
+     (map #(conj %1 %2)
+          path
+          (map #(* initial-amount (/ 1 %))
+               (unbound-range 1 flow-rate)))))
 
 
 ;; Splatter generation

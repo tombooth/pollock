@@ -35,6 +35,11 @@
 ;; super strong and i'm not sure how i want to tweak all params.
 (def splatter-dampening 3.0)
 
+;; this is the 'flow rate' of the paint. this translates as how much
+;; paint each point along the stroke recieves as function of the
+;; initial amount. this is initial * (1 / [1 + (point_num * flow-rate)])
+(def flow-rate 0.08)
+
 (def start-points (atom []))
 (def strokes (atom []))
 (def stroke-projections (atom []))
@@ -49,7 +54,7 @@
         (take n (gen/start-points width height depth)))
   (atom-set! strokes
                (doall
-                (map gen/add-paint
+                (map #(gen/add-paint % flow-rate)
                      (map gen/linear-path-velocity
                          (filter gen/path-above-canvas?
                                  (map #(gen/random-path % 50 (/ max-side 4))
