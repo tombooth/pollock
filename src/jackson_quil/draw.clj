@@ -39,14 +39,6 @@
   (q/end-shape)
   (q/pop-style))
 
-(defn point-projection [point-projection]
-  (q/begin-shape)  
-  (doall (map #(apply q/vertex (take 3 %)) point-projection))
-  (q/end-shape))
-
-(defn path-projection [path-projection]
-  (doall (map point-projection path-projection)))
-
 (defn splatter [points]
   (q/begin-shape :points)
   (q/stroke (q/color 255 0 0))

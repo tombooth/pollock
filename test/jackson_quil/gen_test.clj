@@ -27,9 +27,7 @@
   (testing "No velocity and gravity results in duplicate"
     (let [line (take 10 (straight-line-seq 1))
           projected-line (positions
-                          (extract-path-projection
-                           (path-projections line gravity)
-                           gravity))
+                          (path-projection line gravity))
           expected-line (positions (map y-to-zero line))]
       (is (every-point-the-same? expected-line projected-line))))
   
@@ -37,11 +35,11 @@
     (let [line [[0  10 0 1  0 0]
                 [5  10 0 5  0 0]
                 [10 10 0 10 0 0]]
-          expected-line [[(/ 10 7)  0 0]
-                         [(/ 85 7)  0 0]
-                         [(/ 170 7) 0 0]]
+          expected-line [[10/7  0 0]
+                         [85/7  0 0]
+                         [170/7 0 0]]
           projected-line (positions
-                          (perfect-path-projection line gravity))]
+                          (path-projection line gravity))]
       (is (every-point-the-same? expected-line projected-line)))))
 
 
@@ -49,7 +47,7 @@
   (testing "That it doesn't just pick the start point"
     (let [point [0 0 0 1 5 0 1]
           expected-point [10.0 0 0.0 1.0 -5.0 0.0 1]
-          projected-point (perfect-point-projection point [0 -1 0])]
+          projected-point (point-projection point [0 -1 0])]
       (is (= expected-point projected-point)))))
 
 (deftest splatter-test

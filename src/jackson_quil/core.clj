@@ -42,7 +42,6 @@
 
 (def start-points (atom []))
 (def strokes (atom []))
-(def stroke-projections (atom []))
 (def streaks (atom []))
 (def splatter (atom []))
 
@@ -59,12 +58,9 @@
                          (filter gen/path-above-canvas?
                                  (map #(gen/random-path % 50 (/ max-side 4))
                                       @start-points))))))
-  (atom-set! stroke-projections
-             (doall (map #(gen/path-projections % gravity)
-                         @strokes)))
   (atom-set! streaks
-             (doall (map #(gen/extract-path-projection % gravity)
-                         @stroke-projections)))
+             (doall (map #(gen/path-projection % gravity)
+                         @strokes)))
   (let [cut-off (gen/splatter-cut-off @streaks splatter-percentile)]
     (atom-set! splatter
                (doall (gen/splatter @streaks cut-off splatter-dampening gravity))))
@@ -89,7 +85,6 @@
   (q/end-shape)
   (q/pop-style))
 
-(def draw-projections? (atom false))
 (def draw-strokes? (atom false))
 (def draw-velocities? (atom false))
 
@@ -99,7 +94,6 @@
 (defn key-pressed []
   (println "Code: " (q/key-code))
   (case (q/key-code)
-    65 (toggle! draw-projections?)     ;; a
     83 (toggle! draw-strokes?)         ;; s
     68 (toggle! draw-velocities?)      ;; d
     71 (gen-paths 10)                  ;; g
@@ -112,7 +106,6 @@
   (camera/move-camera)
   (draw-layout)
   (q/push-style)
-  (if @draw-projections? (doall (map draw/path-projection @stroke-projections)))
   (if @draw-strokes? (doall (map draw/path @strokes)))
   (if @draw-velocities? (doall (map draw/velocities @strokes)))
   (doall (map draw/path @streaks))

@@ -4,34 +4,13 @@
             [jackson-quil.util :as util]])
 
 
-;; Projection
-
-(defn project-seq
-  "Takes a vector containing the position of a point along side it's current
-  velocity, a vector defining the environments intrinsic acceleration (gravity)
-  and the time per step in secconds. It returns a lazy-sequence progressing
-  the point through time at t second intervals."
-  [point env-acceleration time]
-  (let [[position velocity paint] (partition-all 3 point)
-        velocity-delta (util/vec-mult-const env-acceleration time)
-        new-velocity (util/vec-add velocity velocity-delta)
-        new-position (util/vec-add position (util/vec-mult-const velocity time))
-        new-point (concat new-position new-velocity paint)]
-    (cons
-      new-point
-      (lazy-seq (project-seq new-point env-acceleration time)))))
-
 (defn above-canvas? [[x y & _]] (> y 0))
-
 (defn path-above-canvas? [path] (every? above-canvas? path))
 
-(defn point-projections [point gravity]
-  (take-while above-canvas? (project-seq point gravity 0.01)))
 
-(defn path-projections [path gravity]
-  (map #(point-projections % gravity) path))
+;; Projection
 
-(defn perfect-point-projection [[x0 y0 z0 i0 j0 k0 p] [ai aj ak]]
+(defn point-projection [[x0 y0 z0 i0 j0 k0 p] [ai aj ak]]
   (let [time-discrim (Math/sqrt (- (* 4 j0 j0) (* 8 aj y0)))
         t-1 (/ (- time-discrim (* 2 j0)) (* 2 aj))
         t-2 (/ (- (- 0 (* 2 j0)) time-discrim) (* 2 aj))
@@ -44,11 +23,8 @@
         k (+ k0 (* ak t-2))]
     [x 0 z i j k p]))
 
-(defn perfect-path-projection [path gravity]
-  (map #(perfect-point-projection % gravity) path))
-
-(defn extract-path-projection [path-projection gravity]
-  (map #(perfect-point-projection (last %1) gravity) path-projection))
+(defn path-projection [path gravity]
+  (map #(point-projection % gravity) path))
 
 
 
@@ -142,7 +118,7 @@
     (if (does-impact-splatter? velocity cut-off)
       (let [reflect-velocity (util/vec-reflect velocity)
             dampend-veloctiy (util/vec-mult-const reflect-velocity damp-const)
-            projected (perfect-point-projection
+            projected (point-projection
                        (concat position dampend-veloctiy [1])    ;; paint amount hardcoded
                        gravity)]
         projected)
