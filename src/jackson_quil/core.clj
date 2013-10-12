@@ -49,10 +49,11 @@
         (take n (gen/start-points width height depth)))
   (atom-set! strokes
                (doall
-                (map gen/linear-path-velocity
-                     (filter gen/path-above-canvas?
-                             (map #(gen/random-path % 50 (/ max-side 4))
-                                 @start-points)))))
+                (map gen/add-paint
+                     (map gen/linear-path-velocity
+                         (filter gen/path-above-canvas?
+                                 (map #(gen/random-path % 50 (/ max-side 4))
+                                      @start-points))))))
   (atom-set! stroke-projections
              (doall (map #(gen/path-projections % gravity)
                          @strokes)))

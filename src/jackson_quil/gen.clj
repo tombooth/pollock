@@ -12,11 +12,11 @@
   and the time per step in secconds. It returns a lazy-sequence progressing
   the point through time at t second intervals."
   [point env-acceleration time]
-  (let [[position velocity] (split-at 3 point)
+  (let [[position velocity paint] (partition-all 3 point)
         velocity-delta (util/vec-mult-const env-acceleration time)
         new-velocity (util/vec-add velocity velocity-delta)
         new-position (util/vec-add position (util/vec-mult-const velocity time))
-        new-point (concat new-position new-velocity)]
+        new-point (concat new-position new-velocity paint)]
     (cons
       new-point
       (lazy-seq (project-seq new-point env-acceleration time)))))
@@ -31,7 +31,7 @@
 (defn path-projections [path gravity]
   (map #(point-projections % gravity) path))
 
-(defn perfect-point-projection [[x0 y0 z0 i0 j0 k0 :as p0] [ai aj ak :as a]]
+(defn perfect-point-projection [[x0 y0 z0 i0 j0 k0 p] [ai aj ak]]
   (let [time-discrim (Math/sqrt (- (* 4 j0 j0) (* 8 aj y0)))
         t-1 (/ (- time-discrim (* 2 j0)) (* 2 aj))
         t-2 (/ (- (- 0 (* 2 j0)) time-discrim) (* 2 aj))
@@ -42,7 +42,7 @@
         i (+ i0 (* ai t-2))
         j (+ j0 (* aj t-2))
         k (+ k0 (* ak t-2))]
-    [x 0 z i j k]))
+    [x 0 z i j k p]))
 
 (defn perfect-path-projection [path gravity]
   (map #(perfect-point-projection % gravity) path))
@@ -97,6 +97,21 @@
     (util/map-2 #(linear-point-velocity step-time %1 %2) path)))
 
 
+;; Paint generation
+;; ----------------
+;;
+;; We need to give every point an amount of paint. Every path should
+;; have a random amount of point allocated to it (within some bounds)
+;; and then each point along the path will get allocated a decreasing
+;; amount of paint from that total.
+
+
+(defn add-paint-to-point [point]
+  (conj point 1))
+
+(defn add-paint [path]
+  (map add-paint-to-point path))
+
 
 ;; Splatter generation
 ;; -------------------
@@ -116,12 +131,12 @@
 
 
 (defn splatter-point [point cut-off damp-const gravity]
-  (let [[position velocity] (split-at 3 point)]
+  (let [[position velocity paint] (partition-all 3 point)]
     (if (does-impact-splatter? velocity cut-off)
       (let [reflect-velocity (util/vec-reflect velocity)
             dampend-veloctiy (util/vec-mult-const reflect-velocity damp-const)
             projected (perfect-point-projection
-                       (concat position dampend-veloctiy)
+                       (concat position dampend-veloctiy [1])    ;; paint amount hardcoded
                        gravity)]
         projected)
       nil)))
@@ -136,7 +151,7 @@
 
 (defn splatter-cut-off [paths percentile]
   (let [magnitudes (map
-                    (fn [[x y z i j k]] (util/vec-abs [i j k]))
+                    (fn [[x y z i j k p]] (util/vec-abs [i j k]))
                     (paths-to-points paths))
         sorted-magnitudes (sort magnitudes)
         index (Math/ceil (* (/ percentile 100) (count magnitudes)))]
