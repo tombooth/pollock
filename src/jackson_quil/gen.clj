@@ -109,14 +109,22 @@
 ;;   - Hopefully reuse the projection function to find out where the
 ;;     splatter will land. Generating a new impact vector and velocity
 
-(defn does-impact-splatter? [velocity-vector cut-off]
-  (let [magnitude (util/vec-abs velocity-vector)]
-    (> magnitude cut-off)))
+(defn- impact [velocity mass]
+  (* (util/vec-abs velocity) mass))
+
+(defn does-impact-splatter?
+  [velocity-vector mass min-impact likelihood]
+  (let [impact (impact velocity-vector mass)]
+    (and (> impact min-impact) (< (rand) likelihood))))
 
 (defn splatter-point
-  [point cut-off velocity-damp-const paint-damp-const gravity]
-  (let [[position velocity [paint]] (partition-all 3 point)]
-    (if (does-impact-splatter? velocity cut-off)
+  
+  [point mass-per-unit min-impact likelihood
+   velocity-damp-const paint-damp-const gravity]
+  
+  (let [[position velocity [paint]] (partition-all 3 point)
+        mass (* paint mass-per-unit)]
+    (if (does-impact-splatter? velocity mass min-impact likelihood)
       (let [reflect-velocity (util/vec-reflect velocity)
             dampend-veloctiy (util/vec-mult-const reflect-velocity
                                                   velocity-damp-const)
@@ -132,19 +140,24 @@
   (apply concat paths))
 
 (defn splatter
-  [paths cut-off velocity-damp-const paint-damp-const gravity]
+  
+  [paths mass-per-unit min-impact likelihood
+   velocity-damp-const paint-damp-const gravity]
+  
   (filter #(not (nil? %))
-          (map #(splatter-point % cut-off
+          (map #(splatter-point % mass-per-unit
+                                min-impact likelihood
                                 velocity-damp-const
                                 paint-damp-const gravity)
                (paths-to-points paths))))
 
-(defn splatter-cut-off [paths percentile]
-  (let [magnitudes (map
-                    (fn [[x y z i j k p]] (util/vec-abs [i j k]))
-                    (paths-to-points paths))
-        sorted-magnitudes (sort magnitudes)
-        index (Math/ceil (* (/ percentile 100) (count magnitudes)))]
-    (nth sorted-magnitudes index)))
+(defn splatter-min-impact [paths mass-per-unit percentile]
+  (let [impacts (map
+                 (fn [[x y z i j k p]]
+                   (impact [i j k] (* p mass-per-unit)))
+                 (paths-to-points paths))
+        sorted-impacts (sort impacts)
+        index (Math/ceil (* (/ percentile 100) (count impacts)))]
+    (nth sorted-impacts index)))
 
 

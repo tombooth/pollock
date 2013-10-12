@@ -25,9 +25,18 @@
 ;; gravity is -980cms-2 and we need to convert this to pixels
 (def gravity [0 (* -980 actual-dpcm) 0])
 
+;; when working out the impacts we need to convert the arbritary paint
+;; unit to a mass and we use this multiply it by this number to get a mass
+(def mass-per-unit 1.0)
+
 ;; splatter is setup so that any impact points with a speed higher
 ;; than the percentile set here will generate splatter
 (def splatter-percentile 90)
+
+;; even if the impact falls within the above percentile we do not want
+;; it to always cause splitter, so (rand) is compared to this value
+;; and if it is less then splatter is caused.
+(def splatter-likelihood 0.5)
 
 ;; this is what the reflected splatted velocity vector will be
 ;; multiplied with during splatter calculation. it should be in
@@ -65,9 +74,11 @@
   (atom-set! streaks
              (doall (map #(gen/path-projection % gravity)
                          @strokes)))
-  (let [cut-off (gen/splatter-cut-off @streaks splatter-percentile)]
+  (let [min-impact (gen/splatter-min-impact @streaks mass-per-unit
+                                            splatter-percentile)]
     (atom-set! splatter
-               (doall (gen/splatter @streaks cut-off
+               (doall (gen/splatter @streaks mass-per-unit
+                                    min-impact splatter-likelihood
                                     splatter-velocity-dampening
                                     splatter-paint-dampening
                                     gravity))))

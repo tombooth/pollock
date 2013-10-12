@@ -55,12 +55,12 @@
     (is (= [[1 2 3] [4 5 6]] (paths-to-points [[[1 2 3]] [[4 5 6]]]))))
   
   (testing "Does it splatter pred"
-    (is (does-impact-splatter? [0 0 0 3 4 5] 7)))
+    (is (does-impact-splatter? [3 4 5] 5 30 1.0)))
 
   (testing "End to end splatter"
     (let [paths [[[0 0 0 1 -5 0 1]]]
           expected-splatter-points [[10.0 0 0.0 1.0 -5.0 0.0 1.0]]
-          splatter-points (splatter paths 0 1.0 1.0 [0 -1 0])]
+          splatter-points (splatter paths 1.0 0 1.0 1.0 1.0 [0 -1 0])]
       (is (= splatter-points expected-splatter-points)))))
 
 
