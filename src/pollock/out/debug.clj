@@ -1,10 +1,10 @@
-(ns jackson-quil.out.debug
+(ns pollock.out.debug
   [:require [quil.core :as q] 
             [clojure.pprint :as pp]
-            [jackson-quil.gen :as gen]
-            [jackson-quil.draw :as draw]
-            [jackson-quil.util.mouse-camera :as camera]
-            [jackson-quil.util.axis :as axis]])
+            [pollock.gen :as gen]
+            [pollock.draw :as draw]
+            [pollock.util.mouse-camera :as camera]
+            [pollock.util.axis :as axis]])
 
 
 (def start-points (atom []))

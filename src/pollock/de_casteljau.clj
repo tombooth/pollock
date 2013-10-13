@@ -1,4 +1,4 @@
-(ns jackson-quil.de-casteljau)
+(ns pollock.de-casteljau)
 
 (defn recur-relation [t a b]
   (+ (* t b) (* a (- 1 t))))

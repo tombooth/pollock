@@ -1,7 +1,7 @@
-(ns jackson-quil.out.image
+(ns pollock.out.image
   [:require [quil.core :as q]
-            [jackson-quil.gen :as gen]
-            [jackson-quil.util :as util]])
+            [pollock.gen :as gen]
+            [pollock.util :as util]])
 
 
 

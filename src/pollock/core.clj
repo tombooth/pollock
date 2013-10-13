@@ -1,8 +1,8 @@
-(ns jackson-quil.core
+(ns pollock.core
   [:require [clojure.tools.cli :refer [cli]]
-            [jackson-quil.out.debug :as debug-output]
-            [jackson-quil.out.image :as image-output]
-            [jackson-quil.util :as util]])
+            [pollock.out.debug :as debug-output]
+            [pollock.out.image :as image-output]
+            [pollock.util :as util]])
 
 (def desired-dpi 300)
 (def actual-dpi 72)

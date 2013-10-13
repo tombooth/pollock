@@ -1,4 +1,4 @@
-(ns jackson-quil.util
+(ns pollock.util
   [:import [java.util Random]]
   [:refer-clojure :exclude [rand rand-int]])
 

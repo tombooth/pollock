@@ -1,7 +1,7 @@
-(ns jackson-quil.gen
+(ns pollock.gen
   [:require [clojure.pprint :as pp]
-            [jackson-quil.de-casteljau :as dc]
-            [jackson-quil.util :as util]])
+            [pollock.de-casteljau :as dc]
+            [pollock.util :as util]])
 
 
 (defn above-canvas? [[x y & _]] (> y 0))

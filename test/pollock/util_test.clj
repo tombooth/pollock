@@ -1,6 +1,6 @@
-(ns jackson-quil.util-test
+(ns pollock.util-test
   (:require [clojure.test :refer :all]
-            [jackson-quil.util :as util]))
+            [pollock.util :as util]))
 
 (deftest map-2-test
   (testing "Adding"

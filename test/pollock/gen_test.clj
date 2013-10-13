@@ -1,6 +1,6 @@
-(ns jackson-quil.gen-test
+(ns pollock.gen-test
   (:require [clojure.test :refer :all]
-            [jackson-quil.gen :refer :all]))
+            [pollock.gen :refer :all]))
 
 (def gravity [0 -9.8 0])
 

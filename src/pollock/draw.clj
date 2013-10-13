@@ -1,7 +1,7 @@
-(ns jackson-quil.draw
+(ns pollock.draw
   [:require [quil.core :as q]
             [clojure.pprint :as pp]
-            [jackson-quil.util :as util]])
+            [pollock.util :as util]])
 
 
 (defn velocity [[x y z i j k p]]
