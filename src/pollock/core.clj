@@ -15,9 +15,11 @@
 (def depth-cm 10)
 (def height-cm 5)
 
-(def width (* (* width-cm actual-dpcm) dpcm-scaling))
-(def depth (* (* depth-cm actual-dpcm) dpcm-scaling))
-(def height (* (* height-cm actual-dpcm) dpcm-scaling))
+(defn to-pixels [cm] (int (* (* cm actual-dpcm) dpcm-scaling)))
+
+(def width (to-pixels width-cm))
+(def depth (to-pixels depth-cm))
+(def height (to-pixels height-cm))
 
 (def default-options
   {

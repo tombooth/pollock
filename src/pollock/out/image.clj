@@ -56,10 +56,36 @@
   (q/ellipse x z p p))
 
 
+(defn assemble-canvas [width height]
+  (let [background-image (q/create-image width height 1)
+        canvas-image (q/load-image "resources/canvas.jpg")
+        canvas-width (.width canvas-image)
+        canvas-height (.height canvas-image)
+        num-x (Math/ceil (/ width canvas-width))
+        num-y (Math/ceil (/ height canvas-height))]
+    (doall (map (fn [x-index]
+                  (doall (map (fn [y-index]
+                                (let [dx1 (* x-index canvas-width)
+                                      dy1 (* y-index canvas-height)
+                                      x-edge (min (+ dx1 canvas-width) width)
+                                      y-edge (min (+ dy1 canvas-height) height)
+                                      copy-width (- x-edge dx1)
+                                      copy-height (- y-edge dy1)]
+                                  (.copy background-image canvas-image
+                                         0 0 copy-width copy-height
+                                         dx1 dy1 copy-width copy-height)))
+                              (range num-y))))
+                (range num-x)))
+    background-image))
+
+
 (defn draw [num-strokes output-path options]
   (let [[strokes splatter] (generate-strokes num-strokes options)]
     (println "Drawing...")
-    (apply q/background (-> options :colors :background))
+    (if (string? (-> options :colors :background))
+      (q/background-image (assemble-canvas (-> options :dimensions :width)
+                                           (-> options :dimensions :depth)))
+      (apply q/background (-> options :colors :background)))
     (doall (map draw-stroke strokes))
     (doall (map draw-splat splatter))
     (q/save output-path)
