@@ -1,11 +1,6 @@
 (ns jackson-quil.core
-  [:require [quil.core :as q] 
-            [clojure.pprint :as pp]
-            [clojure.tools.cli :refer [cli]]
-            [jackson-quil.gen :as gen]
-            [jackson-quil.draw :as draw]
-            [jackson-quil.util.mouse-camera :as camera]
-            [jackson-quil.util.axis :as axis]])
+  [:require [clojure.tools.cli :refer [cli]]
+            [jackson-quil.out.debug :as debug-output]])
 
 (def desired-dpi 300)
 (def actual-dpi 72)
@@ -21,132 +16,45 @@
 (def width (* (* width-cm actual-dpcm) dpcm-scaling))
 (def depth (* (* depth-cm actual-dpcm) dpcm-scaling))
 (def height (* (* height-cm actual-dpcm) dpcm-scaling))
-(def max-side (max width height))
 
-;; gravity is -980cms-2 and we need to convert this to pixels
-(def gravity [0 (* -980 actual-dpcm) 0])
+(def default-options
+  {
+   :dimensions { :width width :height height :depth depth }
+   
+   ;; gravity is -980cms-2 and we need to convert this to pixels
+   :gravity [0 (* -980 actual-dpcm) 0]
 
-;; when working out the impacts we need to convert the arbritary paint
-;; unit to a mass and we use this multiply it by this number to get a mass
-(def mass-per-unit 1.0)
+   ;; when working out the impacts we need to convert the arbritary paint
+   ;; unit to a mass and we use this multiply it by this number to get a mass
+   :mass-per-unit 1.0
 
-;; splatter is setup so that any impact points with a speed higher
-;; than the percentile set here will generate splatter
-(def splatter-percentile 90)
+   ;; this is the 'flow rate' of the paint. this translates as how much
+   ;; paint each point along the stroke recieves as function of the
+   ;; initial amount. this is initial * (1 / [1 + (point_num * flow-rate)])
+   :flow-rate 0.08
 
-;; even if the impact falls within the above percentile we do not want
-;; it to always cause splitter, so (rand) is compared to this value
-;; and if it is less then splatter is caused.
-(def splatter-likelihood 0.5)
+   :splatter
+   {
+    ;; splatter is setup so that any impact points with a speed higher
+    ;; than the percentile set here will generate splatter
+    :percentile 90
 
-;; this is what the reflected splatted velocity vector will be
-;; multiplied with during splatter calculation. it should be in
-;; between 0.0 and 1.0. it is 3.0 at the moment because gravity is
-;; super strong and i'm not sure how i want to tweak all params.
-(def splatter-velocity-dampening 3.0)
+    ;; even if the impact falls within the above percentile we do not want
+    ;; it to always cause splitter, so (rand) is compared to this value
+    ;; and if it is less then splatter is caused.
+    :likelihood 0.5
 
-;; when an impact point emits splatter to work out the amount of paint
-;; in the splatter we multiply the impact's amount of paint with this constant.
-(def splatter-paint-dampening 0.5)
+    ;; this is what the reflected splatted velocity vector will be
+    ;; multiplied with during splatter calculation. it should be in
+    ;; between 0.0 and 1.0. it is 3.0 at the moment because gravity is
+    ;; super strong and i'm not sure how i want to tweak all params.
+    :velocity-dampening 3.0
 
-;; this is the 'flow rate' of the paint. this translates as how much
-;; paint each point along the stroke recieves as function of the
-;; initial amount. this is initial * (1 / [1 + (point_num * flow-rate)])
-(def flow-rate 0.08)
-
-(def start-points (atom []))
-(def strokes (atom []))
-(def streaks (atom []))
-(def splatter (atom []))
-
-(defn atom-set! [atom val]
-  (swap! atom (fn [old] val)))
-
-(defn gen-paths [n]
-  (atom-set! start-points
-        (take n (gen/start-points width height depth)))
-  (atom-set! strokes
-               (doall
-                (map #(gen/add-paint % flow-rate)
-                     (map gen/linear-path-velocity
-                         (filter gen/path-above-canvas?
-                                 (map #(gen/random-path % 50 (/ max-side 4))
-                                      @start-points))))))
-  (atom-set! streaks
-             (doall (map #(gen/path-projection % gravity)
-                         @strokes)))
-  (let [min-impact (gen/splatter-min-impact @streaks mass-per-unit
-                                            splatter-percentile)]
-    (atom-set! splatter
-               (doall (gen/splatter @streaks mass-per-unit
-                                    min-impact splatter-likelihood
-                                    splatter-velocity-dampening
-                                    splatter-paint-dampening
-                                    gravity))))
-  nil)
-
-(defn align-camera []
-  (comment (let [x-mid (int (/ width 2))
-        z-mid (int (/ depth 2))]
-    (camera/set-camera! x-mid 580 241 x-mid 0 z-mid 0 -1 0)))
-  (camera/set-camera! 583 1122 581 583 0 583 0 -1 0))
-
-(defn draw-layout []
-  (q/push-style)
-  (axis/draw)
-  (q/stroke 0)
-  (q/no-fill)
-  (q/begin-shape :quads)
-    (q/vertex 0 0 0)
-    (q/vertex 0 0 depth)
-    (q/vertex width 0 depth)
-    (q/vertex width 0 0)
-  (q/end-shape)
-  (q/pop-style))
-
-(def draw-strokes? (atom false))
-(def draw-velocities? (atom false))
-
-(defn toggle! [bool-atom]
-  (swap! bool-atom #(if % false true)))
-
-(defn key-pressed []
-  (println "Code: " (q/key-code))
-  (case (q/key-code)
-    83 (toggle! draw-strokes?)         ;; s
-    68 (toggle! draw-velocities?)      ;; d
-    71 (gen-paths 10)                  ;; g
-    81 (align-camera)                  ;; q
-    87 (camera/set-camera! 577 757 -1019 583 400 583 0 -1 0) ;; w
-    (println "Key-code: " (q/key-code) " pressed, unknown.")))
-
-(defn draw []
-  (q/background 255)
-  (camera/move-camera)
-  (draw-layout)
-  (q/push-style)
-  (if @draw-strokes? (doall (map draw/path @strokes)))
-  (if @draw-velocities? (doall (map draw/velocities @strokes)))
-  (doall (map draw/path @streaks))
-  (doall (draw/splatter @splatter))
-  (q/pop-style))
-
-(defn setup []
-  (q/smooth)
-  (q/background 255)
-  (align-camera))
-
-(defn show-window []
-  (q/sketch
-    :title "Jackson Phonelock Playground"
-    :setup setup
-    :draw draw
-    :mouse-pressed camera/mouse-pressed
-    :mouse-dragged camera/mouse-dragged
-    :key-pressed key-pressed
-    :size [640 480]
-    :renderer :p3d
-    :target :frame))
+    ;; when an impact point emits splatter to work out the amount of paint
+    ;; in the splatter we multiply the impact's amount of paint with this constant.
+    :paint-dampening 0.5
+   }
+  })
 
 (defn -main [& cli-args]
   (let [[options args banner] (cli cli-args
@@ -157,11 +65,7 @@
     (when (:help options)
       (println banner)
       (System/exit 0))
-
-    (println "Generating" (:num options) "strokes...")
-    (gen-paths (:num options))
-    (println "Done.")
     
     (if (:debug options)
-      (show-window)
+      (debug-output/start (:num options) default-options)
       (println "Would output an image but not done yet."))))
