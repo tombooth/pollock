@@ -21,6 +21,8 @@
 (def default-options
   {
    :dimensions { :width width :height height :depth depth }
+
+   :colors { :background [255 255 255] }
    
    ;; gravity is -980cms-2 and we need to convert this to pixels
    :gravity [0 (* -980 actual-dpcm) 0]

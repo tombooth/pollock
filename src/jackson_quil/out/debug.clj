@@ -80,7 +80,7 @@
     (println "Key-code: " (q/key-code) " pressed, unknown.")))
 
 (defn draw [options]
-  (q/background 255)
+  (apply q/background (-> options :colors :background))
   (camera/move-camera)
   (draw-layout options)
   (q/push-style)
@@ -90,15 +90,14 @@
   (doall (draw/splatter @splats))
   (q/pop-style))
 
-(defn setup []
+(defn setup [options]
   (q/smooth)
-  (q/background 255)
   (align-camera))
 
 (defn show-window [options]
   (q/sketch
     :title "Jackson Phonelock Playground"
-    :setup setup
+    :setup (partial setup options)
     :draw (partial draw options)
     :mouse-pressed camera/mouse-pressed
     :mouse-dragged camera/mouse-dragged
