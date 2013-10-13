@@ -1,6 +1,7 @@
 (ns jackson-quil.core
-  [:require [quil.core :as q]
+  [:require [quil.core :as q] 
             [clojure.pprint :as pp]
+            [clojure.tools.cli :refer [cli]]
             [jackson-quil.gen :as gen]
             [jackson-quil.draw :as draw]
             [jackson-quil.util.mouse-camera :as camera]
@@ -147,6 +148,20 @@
     :renderer :p3d
     :target :frame))
 
-(defn -main []
-  (gen-paths 10)
-  (show-window))
+(defn -main [& cli-args]
+  (let [[options args banner] (cli cli-args
+                                   ["-h" "--help" "Help." :flag true :default false]
+                                   ["-d" "--debug" "Debug mode." :flag true :default false]
+                                   ["-n" "--num" "Number of strokes." :default 10 :parse-fn #(Integer. %)]
+                                   ["-o" "--output" "Output path." :default "pollock.png"])]
+    (when (:help options)
+      (println banner)
+      (System/exit 0))
+
+    (println "Generating" (:num options) "strokes...")
+    (gen-paths (:num options))
+    (println "Done.")
+    
+    (if (:debug options)
+      (show-window)
+      (println "Would output an image but not done yet."))))
