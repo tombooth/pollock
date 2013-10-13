@@ -56,21 +56,21 @@
   (q/ellipse x z p p))
 
 
-(defn draw [num-strokes options]
+(defn draw [num-strokes output-path options]
   (let [[strokes splatter] (generate-strokes num-strokes options)]
     (println "Drawing...")
     (apply q/background (-> options :colors :background))
     (doall (map draw-stroke strokes))
     (doall (map draw-splat splatter))
-    (q/save "out.png")
+    (q/save output-path)
     (println "Done")
     (System/exit 0)))
 
 
-(defn start [num-strokes options]
+(defn start [num-strokes output-path options]
   (q/sketch
    :setup #(q/smooth)
-   :draw (partial draw num-strokes options)
+   :draw (partial draw num-strokes output-path options)
    :size [(-> options :dimensions :width)
           (-> options :dimensions :depth)]
    :target :none))

@@ -71,4 +71,4 @@
     
     (if (:debug options)
       (debug-output/start (:num options) default-options)
-      (image-output/start (:num options) default-options))))
+      (image-output/start (:num options) (:output options) default-options))))
