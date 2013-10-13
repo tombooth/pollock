@@ -1,6 +1,7 @@
 (ns jackson-quil.core
   [:require [clojure.tools.cli :refer [cli]]
-            [jackson-quil.out.debug :as debug-output]])
+            [jackson-quil.out.debug :as debug-output]
+            [jackson-quil.out.image :as image-output]])
 
 (def desired-dpi 300)
 (def actual-dpi 72)
@@ -68,4 +69,4 @@
     
     (if (:debug options)
       (debug-output/start (:num options) default-options)
-      (println "Would output an image but not done yet."))))
+      (image-output/start (:num options) default-options))))
