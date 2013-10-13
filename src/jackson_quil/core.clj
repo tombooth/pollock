@@ -1,7 +1,8 @@
 (ns jackson-quil.core
   [:require [clojure.tools.cli :refer [cli]]
             [jackson-quil.out.debug :as debug-output]
-            [jackson-quil.out.image :as image-output]])
+            [jackson-quil.out.image :as image-output]
+            [jackson-quil.util :as util]])
 
 (def desired-dpi 300)
 (def actual-dpi 72)
@@ -64,10 +65,15 @@
                                    ["-h" "--help" "Help." :flag true :default false]
                                    ["-d" "--debug" "Debug mode." :flag true :default false]
                                    ["-n" "--num" "Number of strokes." :default 10 :parse-fn #(Integer. %)]
+                                   ["-s" "--seed" "Random seed" :default (System/currentTimeMillis) :parse-fn #(Long. %)]
                                    ["-o" "--output" "Output path." :default "pollock.png"])]
     (when (:help options)
       (println banner)
       (System/exit 0))
+
+    (println "Current run seed:" (:seed options))
+
+    (util/set-seed (:seed options))
     
     (if (:debug options)
       (debug-output/start (:num options) default-options)

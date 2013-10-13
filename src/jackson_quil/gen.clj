@@ -32,7 +32,7 @@
 
 (defn start-points [width height depth]
   (cons
-    [(rand width) (rand height) (rand depth)]
+    [(util/rand width) (util/rand height) (util/rand depth)]
     (lazy-seq (start-points width height depth))))
 
 (defn dribble-path [point min-distance max-distance]
@@ -56,7 +56,7 @@
     (dc/calc anchor-points 0.01)))
 
 (defn random-path [point min-distance max-distance]
-  (let [path-fn (if (> 0.5 (rand)) dribble-path flick-path)]
+  (let [path-fn (if (> 0.5 (util/rand)) dribble-path flick-path)]
       (path-fn point min-distance max-distance)))
 
 
@@ -115,7 +115,7 @@
 (defn does-impact-splatter?
   [velocity-vector mass min-impact likelihood]
   (let [impact (impact velocity-vector mass)]
-    (and (> impact min-impact) (< (rand) likelihood))))
+    (and (> impact min-impact) (< (util/rand) likelihood))))
 
 (defn splatter-point
   

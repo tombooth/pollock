@@ -1,4 +1,6 @@
-(ns jackson-quil.util)
+(ns jackson-quil.util
+  [:import [java.util Random]]
+  [:refer-clojure :exclude [rand rand-int]])
 
 
 (defn map-2 [f coll]
@@ -38,6 +40,17 @@
         const (* 2 vec-dot-normal)
         reflection-vec (vec-mult-const normal const)]
     (vec-sub vec reflection-vec)))
+
+
+(def random-generator (new Random))
+
+(defn set-seed [seed] (.setSeed random-generator (long seed)))
+
+(defn rand
+  ([] (.nextFloat random-generator))
+  ([n] (* n (rand))))
+
+(defn rand-int [n] (int (rand n)))
 
 (defn random-between [lower upper]
   (let [diff (- upper lower)]
