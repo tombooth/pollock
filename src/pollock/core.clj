@@ -1,4 +1,5 @@
 (ns pollock.core
+  (:gen-class)
   [:require [clojure.tools.cli :refer [cli]]
             [cheshire.core :as json]
             [pollock.out.debug :as debug-output]
