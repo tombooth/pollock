@@ -1,5 +1,6 @@
 (ns pollock.core
   [:require [clojure.tools.cli :refer [cli]]
+            [cheshire.core :as json]
             [pollock.out.debug :as debug-output]
             [pollock.out.image :as image-output]
             [pollock.util :as util]])
@@ -21,7 +22,7 @@
 (def depth (to-pixels depth-cm))
 (def height (to-pixels height-cm))
 
-(def default-options
+(def default-config
   {
    :dimensions { :width width :height height :depth depth }
 
@@ -60,23 +61,40 @@
     ;; in the splatter we multiply the impact's amount of paint with this constant.
     :paint-dampening 0.5
    }
-  })
+   })
+
+(defn- slurp-config [paths]
+  (map (fn [path]
+         (let [string (slurp path)]
+           (json/parse-string string true)))
+       paths))
+
+(defn- start [cli-options config]
+  (if (:debug cli-options)
+    (debug-output/start (:num cli-options) config)
+    (image-output/start (:num cli-options) (:output cli-options) config)))
 
 (defn -main [& cli-args]
-  (let [[options args banner] (cli cli-args
-                                   ["-h" "--help" "Help." :flag true :default false]
-                                   ["-d" "--debug" "Debug mode." :flag true :default false]
-                                   ["-n" "--num" "Number of strokes." :default 10 :parse-fn #(Integer. %)]
-                                   ["-s" "--seed" "Random seed" :default (System/currentTimeMillis) :parse-fn #(Long. %)]
-                                   ["-o" "--output" "Output path." :default "pollock.png"])]
+  (let [[options args banner]
+        (cli cli-args
+             ["-h" "--help" "Help." :flag true :default false]
+             ["-d" "--debug" "Debug mode." :flag true :default false]
+             ["-n" "--num" "Number of strokes." :default 10
+                                                :parse-fn #(Integer. %)]
+             ["-s" "--seed" "Random seed" :default (System/currentTimeMillis)
+                                          :parse-fn #(Long. %)]
+             ["-o" "--output" "Output path." :default "pollock.png"])]
+    
     (when (:help options)
       (println banner)
       (System/exit 0))
 
     (println "Current run seed:" (:seed options))
-
     (util/set-seed (:seed options))
     
-    (if (:debug options)
-      (debug-output/start (:num options) default-options)
-      (image-output/start (:num options) (:output options) default-options))))
+    (if (> (count args) 0)
+      (let [slurped-config (slurp-config args)
+            merged-config (apply util/deep-merge
+                                 (conj slurped-config default-config))]
+        (start options merged-config))
+      (start options default-config))))
