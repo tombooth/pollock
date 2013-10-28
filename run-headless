@@ -1,0 +1,16 @@
+#!/bin/bash
+
+if [ -L ${BASH_SOURCE[0]} ]
+then 
+	LINKED=$( readlink "${BASH_SOURCE[0]}" )
+	DIR="$( cd "$( dirname "${LINKED}" )" && pwd )"
+else
+	DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+fi
+
+export DISPLAY=localhost:1.0
+Xvfb :1 -screen 0 1152x900x8 -fbdir /tmp &
+
+java -jar $DIR/target/pollock-0.1.0-SNAPSHOT-standalone.jar
+
+killall Xvfb
