@@ -10,7 +10,7 @@ fi
 
 if [ -d "${DIR}/target" ]
 then
-	JAR=${DIR}/target/pollock-0.1.0-SNAPSHOT-standalone.jar
+	JAR=${DIR}/target/pollock-*-standalone.jar
 else
 	JAR=./pollock.jar
 fi
