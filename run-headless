@@ -8,9 +8,16 @@ else
 	DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 fi
 
+if [ -d "${DIR}/target" ]
+then
+	JAR=${DIR}/target/pollock-0.1.0-SNAPSHOT-standalone.jar
+else
+	JAR=./pollock.jar
+fi
+
 export DISPLAY=localhost:1.0
 Xvfb :1 -screen 0 1152x900x8 -fbdir /tmp &
 
-java -jar $DIR/target/pollock-0.1.0-SNAPSHOT-standalone.jar
+java -jar $JAR
 
 killall Xvfb
