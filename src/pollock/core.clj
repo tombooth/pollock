@@ -2,6 +2,8 @@
   (:gen-class)
   [:require [clojure.tools.cli :refer [cli]]
             [cheshire.core :as json]
+            [docopt.core :as dc]
+            [docopt.match :as dm]
             [pollock.out.debug :as debug-output]
             [pollock.out.image :as image-output]
             [pollock.util :as util]])
@@ -66,36 +68,50 @@
 
 (defn- slurp-config [paths]
   (map (fn [path]
-         (let [string (slurp path)]
-           (json/parse-string string true)))
+        (let [string (slurp (if (= path "-") *in* path))]
+          (json/parse-string string true)))
        paths))
 
-(defn- start [cli-options config]
-  (if (:debug cli-options)
-    (debug-output/start (:num cli-options) config)
-    (image-output/start (:num cli-options) (:output cli-options) config)))
+(defn- start [debug num output config]
+  (if debug
+    (debug-output/start num config)
+    (image-output/start num output config)))
 
-(defn -main [& cli-args]
-  (let [[options args banner]
-        (cli cli-args
-             ["-h" "--help" "Help." :flag true :default false]
-             ["-d" "--debug" "Debug mode." :flag true :default false]
-             ["-n" "--num" "Number of strokes." :default 10
-                                                :parse-fn #(Integer. %)]
-             ["-s" "--seed" "Random seed" :default (System/currentTimeMillis)
-                                          :parse-fn #(Long. %)]
-             ["-o" "--output" "Output path." :default "pollock.png"])]
-    
-    (when (:help options)
-      (println banner)
-      (System/exit 0))
+(def usage-string "Pollock
 
-    (println "Current run seed:" (:seed options))
-    (util/set-seed (:seed options))
-    
-    (if (> (count args) 0)
-      (let [slurped-config (slurp-config args)
-            merged-config (apply util/deep-merge
-                                 (conj slurped-config default-config))]
-        (start options merged-config))
-      (start options default-config))))
+Usage:
+  pollock [options] [<config>]...
+
+Options:
+  -h --help        Show this screen.
+  -v --version     Show this version
+  --debug          Run in debug mode (3D window).
+  --num=<num>      Number of strokes [default:10].
+  --seed=<seed>    Random seed.
+  --output=<path>  Output path [default:./pollock.png].")
+
+(def version "Pollock 0.1.0")
+
+(defn -main [& args]
+
+  (let [arg-map      (dm/match-argv (dc/parse usage-string) args)
+        debug        (arg-map "--debug")
+        num          (Integer/parseInt (arg-map "--num"))
+        output       (arg-map "--output")
+        raw-seed     (arg-map "--seed")
+        seed         (if (nil? raw-seed) (System/currentTimeMillis) raw-seed)
+        config-files (arg-map "<config>")]
+
+    (cond
+     (or (nil? arg-map)
+         (arg-map "--help")) (println usage-string)
+
+     (arg-map "--version")   (println version)
+
+     :else (let [slurped-config (slurp-config config-files)
+                 merged-config  (apply util/deep-merge
+                                       (conj slurped-config default-config))]
+             (println "Current run seed: " seed)
+             (util/set-seed seed)
+             (start debug num output merged-config)))))
+
