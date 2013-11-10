@@ -18,6 +18,6 @@ fi
 export DISPLAY=localhost:1.0
 Xvfb :1 -screen 0 1152x900x8 -fbdir /tmp &
 
-java -jar $JAR
+java -jar $JAR $@
 
 killall Xvfb
