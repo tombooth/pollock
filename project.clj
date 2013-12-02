@@ -8,4 +8,4 @@
                  [cheshire "5.2.0"]
                  [docopt "0.6.1"]
                  [quil "1.6.0"]]
-  :main pollock.core)
+  :main pollock.entry)
