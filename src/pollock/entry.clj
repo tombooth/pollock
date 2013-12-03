@@ -8,31 +8,20 @@
             [pollock.out.image :as image-output]
             [pollock.util :as util]])
 
-(def desired-dpi 300)
-(def actual-dpi 72)
-
-(def desired-dpcm (quot desired-dpi 2.54))
-(def actual-dpcm (quot actual-dpi 2.54))
-(def dpcm-scaling (/ desired-dpi actual-dpi))
-
-(def width-cm 10)
-(def depth-cm 10)
-(def height-cm 5)
-
-(defn to-pixels [cm] (int (* (* cm actual-dpcm) dpcm-scaling)))
-
-(def width (to-pixels width-cm))
-(def depth (to-pixels depth-cm))
-(def height (to-pixels height-cm))
-
 (def default-config
   {
-   :dimensions { :width width :height height :depth depth }
+   :seed (System/currentTimeMillis)
+   
+   :num-strokes 10
+   
+   :dimensions { :width 1166 :height 583 :depth 1166 }
 
    :colors { :background [255 255 255] }
    
-   ;; gravity is -980cms-2 and we need to convert this to pixels
-   :gravity [0 (* -980 actual-dpcm) 0]
+   :stroke-length { :max 291 :min 150 }
+   
+   ;; gravity measured in pixels per second per second
+   :gravity [0 -10000 0]
 
    ;; when working out the impacts we need to convert the arbritary paint
    ;; unit to a mass and we use this multiply it by this number to get a mass
@@ -77,18 +66,24 @@
     (debug-output/start num config)
     (image-output/start num output config)))
 
+(defn- to-cli-config [num seed]
+  (let [cli-config (transient {})]
+    (if (not (nil? num)) (assoc! cli-config :num-strokes (Integer/parseInt num)))
+    (if (not (nil? seed)) (assoc! cli-config :seed (Long/parseLong seed)))
+    (persistent! cli-config)))
+
 (def usage-string "Pollock
 
 Usage:
   pollock [options] [<config>]...
 
 Options:
-  -h --help        Show this screen.
-  -v --version     Show this version
-  --debug          Run in debug mode (3D window).
-  --num=<num>      Number of strokes [default:10].
-  --seed=<seed>    Random seed.
-  --output=<path>  Output path [default:./pollock.png].")
+  -h --help            Show this screen.
+  -v --version         Show this version
+  --debug              Run in debug mode (3D window).
+  --num-strokes=<num>  Number of strokes.
+  --seed=<seed>        Random seed.
+  --output=<path>      Output path [default:./pollock.png].")
 
 (def version "Pollock 0.1.0")
 
@@ -96,10 +91,9 @@ Options:
 
   (let [arg-map      (dm/match-argv (dc/parse usage-string) args)
         debug        (arg-map "--debug")
-        num          (Integer/parseInt (arg-map "--num"))
-        output       (arg-map "--output")
         raw-seed     (arg-map "--seed")
-        seed         (if (nil? raw-seed) (System/currentTimeMillis) raw-seed)
+        raw-num      (arg-map "--num-strokes")
+        output       (arg-map "--output")
         config-files (arg-map "<config>")]
 
     (cond
@@ -109,8 +103,11 @@ Options:
      (arg-map "--version")   (println version)
 
      :else (let [slurped-config (slurp-config config-files)
-                 merged-config  (apply util/deep-merge
-                                       (conj slurped-config default-config))]
+                 file-config    (apply util/deep-merge
+                                       (conj slurped-config default-config))
+                 merged-config  (merge file-config (to-cli-config raw-num raw-seed))
+                 seed (:seed merged-config)
+                 num (:num-strokes merged-config)]
              (println "Current run seed: " seed)
              (util/set-seed seed)
              (start debug num output merged-config)))))
