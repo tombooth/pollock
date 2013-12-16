@@ -21,9 +21,9 @@
   (q/ellipse x z p p))
 
 
-(defn assemble-canvas [width height]
+(defn assemble-canvas [width height background-path]
   (let [background-image (q/create-image width height 1)
-        canvas-image (q/load-image "resources/canvas.jpg")
+        canvas-image (q/load-image background-path)
         canvas-width (.width canvas-image)
         canvas-height (.height canvas-image)
         num-x (Math/ceil (/ width canvas-width))
@@ -45,12 +45,14 @@
 
 
 (defn draw [output-path options]
-  (let [[strokes splatter] (gen/artwork options)]
+  (let [[strokes splatter] (gen/artwork options)
+        background (-> options :colors :background)]
     (println "Drawing...")
-    (if (string? (-> options :colors :background))
+    (if (string? background)
       (q/background-image (assemble-canvas (-> options :dimensions :width)
-                                           (-> options :dimensions :depth)))
-      (apply q/background (-> options :colors :background)))
+                                           (-> options :dimensions :depth)
+                                           background))
+      (apply q/background background))
     (doall (map draw-stroke strokes))
     (doall (map draw-splat splatter))
     (q/save output-path)
