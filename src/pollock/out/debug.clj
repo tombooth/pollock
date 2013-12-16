@@ -7,43 +7,18 @@
             [pollock.util.axis :as axis]])
 
 
-(def start-points (atom []))
 (def strokes (atom []))
-(def streaks (atom []))
 (def splats (atom []))
 
 (defn atom-set! [atom val]
   (swap! atom (fn [old] val)))
 
-(defn gen-paths [n options]
-  (let [width (-> options :dimensions :width)
-        height (-> options :dimensions :height)
-        depth (-> options :dimensions :depth)
-        max-side (max width depth)
-        flow-rate (:flow-rate options)
-        gravity (:gravity options)
-        mass-per-unit (:mass-per-unit options)
-        splatter (:splatter options)]
-    (atom-set! start-points
-               (take n (gen/start-points width height depth)))
+(defn gen-paths [options]
+  (let [[out-strokes out-splats] (gen/artwork options)]
     (atom-set! strokes
-               (doall
-                (map #(gen/add-paint % flow-rate)
-                     (map gen/linear-path-velocity
-                          (filter gen/path-above-canvas?
-                                  (map #(gen/random-path % 50 (/ max-side 4))
-                                       @start-points))))))
-    (atom-set! streaks
-               (doall (map #(gen/path-projection % gravity)
-                           @strokes)))
-    (let [min-impact (gen/splatter-min-impact @streaks mass-per-unit
-                                              (:percentile splatter))]
-      (atom-set! splats
-                 (doall (gen/splatter @streaks mass-per-unit
-                                      min-impact (:likelihood splatter)
-                                      (:velocity-dampening splatter)
-                                      (:paint-dampening splatter)
-                                      gravity))))
+               out-strokes)
+    (atom-set! splats
+               out-splats)
     nil))
 
 (defn align-camera []
@@ -64,7 +39,8 @@
     (q/end-shape))
   (q/pop-style))
 
-(def draw-strokes? (atom false))
+(def draw-strokes? (atom true))
+(def draw-splats? (atom true))
 (def draw-velocities? (atom false))
 
 (defn toggle! [bool-atom]
@@ -72,9 +48,10 @@
 
 (defn key-pressed [options]
   (case (q/key-code)
+    65 (toggle! draw-velocities?)      ;; a
     83 (toggle! draw-strokes?)         ;; s
-    68 (toggle! draw-velocities?)      ;; d
-    71 (gen-paths 10 options)          ;; g
+    68 (toggle! draw-splats?)          ;; d
+    71 (gen-paths options)             ;; g
     81 (align-camera)                  ;; q
     87 (camera/set-camera! 577 757 -1019 583 400 583 0 -1 0) ;; w
     (println "Key-code: " (q/key-code) " pressed, unknown.")))
@@ -86,8 +63,7 @@
   (q/push-style)
   (if @draw-strokes? (doall (map draw/path @strokes)))
   (if @draw-velocities? (doall (map draw/velocities @strokes)))
-  (doall (map draw/path @streaks))
-  (doall (draw/splatter @splats))
+  (if @draw-splats? (draw/splatter @splats))
   (q/pop-style))
 
 (defn setup [options]
@@ -106,10 +82,10 @@
     :renderer :p3d
     :target :frame))
 
-(defn start [num-strokes options]
+(defn start [options]
   
-  (println "Generating" num-strokes "strokes...")
-  (gen-paths num-strokes options)
+  (println "Generating" (:num-strokes options) "strokes...")
+  (gen-paths options)
   (println "Done.")
   
   (show-window options))

@@ -5,41 +5,6 @@
 
 
 
-
-(defn generate-strokes [num-strokes options]
-  (println "Generating" num-strokes "strokes...")
-  (let [dimensions (:dimensions options)
-        max-stroke-length (/ (max (:width dimensions) (:depth dimensions)) 4)
-        min-stroke-length (/ (min (:width dimensions) (:depth dimensions)) 4)
-        splatter-opt (:splatter options)
-
-        start-points (take num-strokes
-                           (gen/start-points (:width dimensions)
-                                             (:height dimensions)
-                                             (:depth dimensions)))
-
-        air-strokes (map #(gen/add-paint % (:flow-rate options))
-                         (map gen/linear-path-velocity
-                              (filter gen/path-above-canvas?
-                                      (map #(gen/random-path % min-stroke-length
-                                                             max-stroke-length)
-                                           start-points))))
-
-        strokes (map #(gen/path-projection % (:gravity options))
-                     air-strokes)
-
-        min-impact (gen/splatter-min-impact strokes (:mass-per-unit options)
-                                            (:percentile splatter-opt))
-
-        splatter (gen/splatter strokes (:mass-per-unit options)
-                               min-impact (:likelihood splatter-opt)
-                               (:velocity-dampening splatter-opt)
-                               (:paint-dampening splatter-opt)
-                               (:gravity options))]
-    (println "Done.")
-    [strokes splatter]))
-
-
 (defn draw-sub-stroke [[x1 y1 z1 i1 j1 k1 p1] [x2 y2 z2 i2 j2 k2 p2]]
   (q/stroke-weight p1)
   (q/line x1 z1 x2 z2))
@@ -79,8 +44,8 @@
     background-image))
 
 
-(defn draw [num-strokes output-path options]
-  (let [[strokes splatter] (generate-strokes num-strokes options)]
+(defn draw [output-path options]
+  (let [[strokes splatter] (gen/artwork options)]
     (println "Drawing...")
     (if (string? (-> options :colors :background))
       (q/background-image (assemble-canvas (-> options :dimensions :width)
@@ -93,10 +58,10 @@
     (System/exit 0)))
 
 
-(defn start [num-strokes output-path options]
+(defn start [output-path options]
   (q/sketch
    :setup #(q/smooth)
-   :draw (partial draw num-strokes output-path options)
+   :draw (partial draw output-path options)
    :size [(-> options :dimensions :width)
           (-> options :dimensions :depth)]
    :target :none))

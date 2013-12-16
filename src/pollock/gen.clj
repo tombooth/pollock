@@ -27,13 +27,7 @@
   (map #(point-projection % gravity) path))
 
 
-
 ;; Path generation
-
-(defn start-points [width height depth]
-  (cons
-    [(util/rand width) (util/rand height) (util/rand depth)]
-    (lazy-seq (start-points width height depth))))
 
 (defn dribble-path [point min-distance max-distance]
   (let [distance (util/random-between min-distance max-distance)
@@ -95,6 +89,20 @@
           (map #(* initial-amount (/ 1 %))
                (unbound-range 1 flow-rate)))))
 
+;; Combined stroke generation
+
+(defn strokes [dimensions stroke-length flow-rate]
+  (let [start-point [(util/rand (:width dimensions))
+                     (util/rand (:height dimensions))
+                     (util/rand (:depth dimensions))]
+        path (random-path start-point
+                          (:min stroke-length)
+                          (:max stroke-length))]
+    (if (path-above-canvas? path)
+      (cons (add-paint (linear-path-velocity path)
+                       flow-rate)
+            (lazy-seq (strokes dimensions stroke-length flow-rate)))
+      (lazy-seq (strokes dimensions stroke-length flow-rate)))))
 
 
 ;; Splatter generation
@@ -161,3 +169,33 @@
     (nth sorted-impacts index)))
 
 
+;; Artwork generation
+;; ------------------
+;;
+;; We want to put together all of the above pieces so we can pass in
+;; config for the artwork and get out the strokes and splatter to be
+;; drawn
+
+(defn artwork [options]
+  (let [air-strokes (take (:num-strokes options)
+                          (strokes (:dimensions options)
+                                   (:stroke-length options)
+                                   (:flow-rate options)))
+        
+        strokes (map #(path-projection % (:gravity options))
+                     air-strokes)
+
+        splatter-options (:splatter options)
+        
+        min-impact (splatter-min-impact strokes
+                                        (:mass-per-unit options)
+                                        (:percentile splatter-options))
+
+        splatter (splatter strokes
+                           (:mass-per-unit options)
+                           min-impact
+                           (:likelihood splatter-options)
+                           (:velocity-dampening splatter-options)
+                           (:paint-dampening splatter-options)
+                           (:gravity options))]
+    [strokes splatter]))

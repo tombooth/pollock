@@ -1,6 +1,7 @@
 (ns pollock.gen-test
   (:require [clojure.test :refer :all]
-            [pollock.gen :refer :all]))
+            [pollock.gen :refer :all]
+            [pollock.entry :as entry]))
 
 (def gravity [0 -9.8 0])
 
@@ -76,3 +77,7 @@
           with-paint (add-paint path flow-rate initial)]
     (is (= with-paint expected-with-paint)))))
 
+(deftest artwork-test
+  (testing "Simple artwork gen test"
+    (let [[strokes splatter] (artwork entry/default-config)]
+      (is (= (count strokes) (:num-strokes entry/default-config))))))

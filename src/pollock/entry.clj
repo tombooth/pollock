@@ -61,10 +61,10 @@
           (json/parse-string string true)))
        paths))
 
-(defn- start [debug num output config]
+(defn- start [debug output config]
   (if debug
-    (debug-output/start num config)
-    (image-output/start num output config)))
+    (debug-output/start config)
+    (image-output/start output config)))
 
 (defn- to-cli-config [num seed]
   (let [cli-config (transient {})]
@@ -106,9 +106,8 @@ Options:
                  file-config    (apply util/deep-merge
                                        (conj slurped-config default-config))
                  merged-config  (merge file-config (to-cli-config raw-num raw-seed))
-                 seed (:seed merged-config)
-                 num (:num-strokes merged-config)]
+                 seed (:seed merged-config)]
              (println "Current run seed: " seed)
              (util/set-seed seed)
-             (start debug num output merged-config)))))
+             (start debug output merged-config)))))
 
