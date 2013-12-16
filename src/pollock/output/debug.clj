@@ -8,18 +8,9 @@
 
 
 (def strokes (atom []))
-(def splats (atom []))
-
-(defn atom-set! [atom val]
-  (swap! atom (fn [old] val)))
 
 (defn gen-paths [options]
-  (let [[out-strokes out-splats] (gen/artwork options)]
-    (atom-set! strokes
-               out-strokes)
-    (atom-set! splats
-               out-splats)
-    nil))
+   (swap! strokes (fn [_] (gen/artwork options))))
 
 (defn align-camera []
   (camera/set-camera! 583 1122 581 583 0 583 0 -1 0))
@@ -65,11 +56,10 @@
 (defn draw-splatter [points]
   (q/begin-shape :points)
   (q/stroke (q/color 255 0 0))
-  (doall(map
-         (fn [[x y z i j k p]]
-           (q/stroke-weight p)
-           (q/vertex x y z))
-         points))
+  (doall (map (fn [[x y z i j k p]]
+                (q/stroke-weight p)
+                (q/vertex x y z))
+              points))
   (q/end-shape))
 
 (defn draw-layout [options]
@@ -109,9 +99,11 @@
   (camera/move-camera)
   (draw-layout options)
   (q/push-style)
-  (if @draw-strokes? (doall (map draw-path @strokes)))
-  (if @draw-velocities? (doall (map draw-velocities @strokes)))
-  (if @draw-splats? (draw-splatter @splats))
+  (let [paths (map :stroke @strokes)
+        splats (gen/paths-to-points (map :splatter @strokes))]
+    (if @draw-strokes? (doall (map draw-path paths)))
+    (if @draw-velocities? (doall (map draw-velocities paths)))
+    (if @draw-splats? (draw-splatter splats)))
   (q/pop-style))
 
 (defn setup [options]

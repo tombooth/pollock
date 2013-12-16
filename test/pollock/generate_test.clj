@@ -59,9 +59,9 @@
     (is (does-impact-splatter? [3 4 5] 5 30 1.0)))
 
   (testing "End to end splatter"
-    (let [paths [[[0 0 0 1 -5 0 1]]]
+    (let [path [[0 0 0 1 -5 0 1]]
           expected-splatter-points [[10.0 0 0.0 1.0 -5.0 0.0 1.0]]
-          splatter-points (splatter paths 1.0 0 1.0 1.0 1.0 [0 -1 0])]
+          splatter-points (splatter path 1.0 0 1.0 1.0 1.0 [0 -1 0])]
       (is (= splatter-points expected-splatter-points)))))
 
 
@@ -79,5 +79,6 @@
 
 (deftest artwork-test
   (testing "Simple artwork gen test"
-    (let [[strokes splatter] (artwork entry/default-config)]
-      (is (= (count strokes) (:num-strokes entry/default-config))))))
+    (let [strokes (artwork entry/default-config)]
+      (is (= (count strokes) (:num-strokes entry/default-config)))
+      (is (every? #(and (:stroke %) (:splatter %)) strokes)))))

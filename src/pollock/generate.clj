@@ -149,7 +149,7 @@
 
 (defn splatter
   
-  [paths mass-per-unit min-impact likelihood
+  [path mass-per-unit min-impact likelihood
    velocity-damp-const paint-damp-const gravity]
   
   (filter #(not (nil? %))
@@ -157,7 +157,7 @@
                                 min-impact likelihood
                                 velocity-damp-const
                                 paint-damp-const gravity)
-               (paths-to-points paths))))
+               path)))
 
 (defn splatter-min-impact [paths mass-per-unit percentile]
   (let [impacts (map
@@ -190,12 +190,14 @@
         min-impact (splatter-min-impact strokes
                                         (:mass-per-unit options)
                                         (:percentile splatter-options))
-
-        splatter (splatter strokes
-                           (:mass-per-unit options)
-                           min-impact
-                           (:likelihood splatter-options)
-                           (:velocity-dampening splatter-options)
-                           (:paint-dampening splatter-options)
-                           (:gravity options))]
-    [strokes splatter]))
+        
+        splatter-for-strokes (map #(splatter % (:mass-per-unit options)
+                                             min-impact (:likelihood splatter-options)
+                                             (:velocity-dampening splatter-options)
+                                             (:paint-dampening splatter-options)
+                                             (:gravity options))
+                                  strokes)]
+    
+    (map #(hash-map :stroke %1 :splatter %2)
+         strokes
+         splatter-for-strokes)))

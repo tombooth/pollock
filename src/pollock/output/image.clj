@@ -19,6 +19,9 @@
   (q/fill 255 0 0)
   (q/ellipse x z p p))
 
+(defn draw-strokes [{:keys [stroke splatter]}]
+  (draw-stroke stroke)
+  (doall (map draw-splat splatter)))
 
 (defn assemble-canvas [width height background-path]
   (let [background-image (q/create-image width height 1)
@@ -44,15 +47,14 @@
 
 
 (defn draw [output-path options]
-  (let [[strokes splatter] (gen/artwork options)
+  (let [strokes (gen/artwork options)
         background (-> options :colors :background)]
     (if (string? background)
       (q/background-image (assemble-canvas (-> options :dimensions :width)
                                            (-> options :dimensions :depth)
                                            background))
       (apply q/background background))
-    (doall (map draw-stroke strokes))
-    (doall (map draw-splat splatter))
+    (doall (map draw-strokes strokes))
     (q/save output-path)
     (System/exit 0)))
 
