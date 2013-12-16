@@ -1,4 +1,4 @@
-(ns pollock.util.mouse-camera
+(ns pollock.out.mouse-camera
   [:require [quil.core :as q]
             [clojure.pprint :as pp]])
 

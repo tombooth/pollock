@@ -1,4 +1,4 @@
-(ns pollock.util.axis
+(ns pollock.out.axis
   [:require [quil.core :as q]])
 
 (defn draw []
