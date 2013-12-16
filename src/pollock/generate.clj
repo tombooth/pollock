@@ -1,4 +1,4 @@
-(ns pollock.gen
+(ns pollock.generate
   [:require [clojure.pprint :as pp]
             [pollock.de-casteljau :as dc]
             [pollock.util :as util]])

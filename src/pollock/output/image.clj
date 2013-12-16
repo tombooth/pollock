@@ -1,8 +1,7 @@
-(ns pollock.out.image
+(ns pollock.output.image
   [:require [quil.core :as q]
-            [pollock.gen :as gen]
-            [pollock.util :as util]])
-
+            [pollock.util :as util]
+            [pollock.generate :as gen]])
 
 
 (defn draw-sub-stroke [[x1 y1 z1 i1 j1 k1 p1] [x2 y2 z2 i2 j2 k2 p2]]

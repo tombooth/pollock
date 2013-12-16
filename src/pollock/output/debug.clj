@@ -1,10 +1,10 @@
-(ns pollock.out.debug
+(ns pollock.output.debug
   [:require [quil.core :as q] 
             [clojure.pprint :as pp]
-            [pollock.gen :as gen]
             [pollock.util :as util]
-            [pollock.out.mouse-camera :as camera]
-            [pollock.out.axis :as axis]])
+            [pollock.generate :as gen]
+            [pollock.output.debug.mouse-camera :as camera]
+            [pollock.output.debug.axis :as axis]])
 
 
 (def strokes (atom []))

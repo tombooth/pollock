@@ -4,8 +4,8 @@
             [cheshire.core :as json]
             [docopt.core :as dc]
             [docopt.match :as dm]
-            [pollock.out.debug :as debug-output]
-            [pollock.out.image :as image-output]
+            [pollock.output.debug :as debug-output]
+            [pollock.output.image :as image-output]
             [pollock.util :as util]])
 
 (def default-config
