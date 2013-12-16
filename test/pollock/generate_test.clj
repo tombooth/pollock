@@ -1,7 +1,7 @@
-(ns pollock.gen-test
+(ns pollock.generate-test
   (:require [clojure.test :refer :all]
-            [pollock.gen :refer :all]
-            [pollock.entry :as entry]))
+            [pollock.entry :as entry]
+            [pollock.generate :refer :all]))
 
 (def gravity [0 -9.8 0])
 
