@@ -107,7 +107,15 @@ Options:
                                        (conj slurped-config default-config))
                  merged-config  (merge file-config (to-cli-config raw-num raw-seed))
                  seed (:seed merged-config)]
-             (println "Current run seed: " seed)
+
+             (println "Version:" version)
+             
+             (if-let [build-info-resource (clojure.java.io/resource "build.info")]
+               (let [build-info (slurp build-info-resource)]
+                 (print build-info)))
+
+             (println (json/generate-string merged-config {:pretty true}))
+             
              (util/set-seed seed)
              (start debug output merged-config)))))
 

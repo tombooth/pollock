@@ -46,7 +46,6 @@
 (defn draw [output-path options]
   (let [[strokes splatter] (gen/artwork options)
         background (-> options :colors :background)]
-    (println "Drawing...")
     (if (string? background)
       (q/background-image (assemble-canvas (-> options :dimensions :width)
                                            (-> options :dimensions :depth)
@@ -55,7 +54,6 @@
     (doall (map draw-stroke strokes))
     (doall (map draw-splat splatter))
     (q/save output-path)
-    (println "Done")
     (System/exit 0)))
 
 

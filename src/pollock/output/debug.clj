@@ -131,10 +131,6 @@
     :target :frame))
 
 (defn start [options]
-  
-  (println "Generating" (:num-strokes options) "strokes...")
   (gen-paths options)
-  (println "Done.")
-  
   (show-window options))
 
