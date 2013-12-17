@@ -16,7 +16,15 @@
    
    :dimensions { :width 1166 :height 583 :depth 1166 }
 
-   :colors { :background [255 255 255] }
+   :colors
+   {
+    :background [255 255 255]
+    
+    :strokes [[0 0 0]
+              [255 0 0]
+              [0 255 0]
+              [0 0 255]]
+   }
    
    :stroke-length { :max 291 :min 150 }
    

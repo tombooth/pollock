@@ -170,13 +170,12 @@
 
 
 ;; Color generation
-;; ----------------
-;;
-;; Going to be random for the moment just to prove the code
 
-(defn colors []
-  (cons [(util/rand-int 255) (util/rand-int 255) (util/rand-int 255)]
-        (lazy-seq (colors))))
+(defn colors [colors-list]
+  (let [color-index (util/rand-int (count colors-list))]
+    (cons (nth colors-list color-index)
+          (lazy-seq (colors colors-list)))))
+
 
 ;; Artwork generation
 ;; ------------------
@@ -207,7 +206,8 @@
                                              (:gravity options))
                                   strokes)
 
-        colors-for-strokes (take (:num-strokes options) (colors))]
+        colors-for-strokes (take (:num-strokes options)
+                                 (colors (-> options :colors :strokes)))]
     
     (map #(hash-map :stroke %1 :splatter %2 :color %3)
          strokes
