@@ -169,6 +169,15 @@
     (nth sorted-impacts index)))
 
 
+;; Color generation
+;; ----------------
+;;
+;; Going to be random for the moment just to prove the code
+
+(defn colors []
+  (cons [(util/rand-int 255) (util/rand-int 255) (util/rand-int 255)]
+        (lazy-seq (colors))))
+
 ;; Artwork generation
 ;; ------------------
 ;;
@@ -196,8 +205,11 @@
                                              (:velocity-dampening splatter-options)
                                              (:paint-dampening splatter-options)
                                              (:gravity options))
-                                  strokes)]
+                                  strokes)
+
+        colors-for-strokes (take (:num-strokes options) (colors))]
     
-    (map #(hash-map :stroke %1 :splatter %2)
+    (map #(hash-map :stroke %1 :splatter %2 :color %3)
          strokes
-         splatter-for-strokes)))
+         splatter-for-strokes
+         colors-for-strokes)))

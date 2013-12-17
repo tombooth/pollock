@@ -8,20 +8,19 @@
   (q/stroke-weight p1)
   (q/line x1 z1 x2 z2))
 
-(defn draw-stroke [stroke]
-  (q/stroke 0 0 0)
+(defn draw-stroke [stroke color]
+  (apply q/stroke color)
   (q/stroke-cap :round)
   (doall (util/map-2 draw-sub-stroke stroke)))
 
-
-(defn draw-splat [[x y z i j k p]]
-  (q/stroke 255 0 0)
-  (q/fill 255 0 0)
+(defn draw-splat [[x y z i j k p] color]
+  (apply q/stroke color)
+  (apply q/fill color)
   (q/ellipse x z p p))
 
-(defn draw-strokes [{:keys [stroke splatter]}]
-  (draw-stroke stroke)
-  (doall (map draw-splat splatter)))
+(defn draw-strokes [{:keys [stroke splatter color]}]
+  (draw-stroke stroke color)
+  (doall (map #(draw-splat % color) splatter)))
 
 (defn assemble-canvas [width height background-path]
   (let [background-image (q/create-image width height 1)

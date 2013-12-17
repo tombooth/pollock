@@ -81,4 +81,7 @@
   (testing "Simple artwork gen test"
     (let [strokes (artwork entry/default-config)]
       (is (= (count strokes) (:num-strokes entry/default-config)))
-      (is (every? #(and (:stroke %) (:splatter %)) strokes)))))
+      (is (every? #(and (:stroke %)
+                        (:splatter %)
+                        (:color %))
+                  strokes)))))

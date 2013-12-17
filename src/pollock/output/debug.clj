@@ -45,22 +45,26 @@
   (q/vertex x1 y1 z1)
   (q/vertex x2 y2 z2))
 
-(defn draw-path [path]
+(defn draw-path [path color]
   (q/push-style)
   (q/stroke-cap :round)
+  (apply q/stroke color)
   (q/begin-shape :lines)
   (doall (util/map-2 draw-path-slice path))
   (q/end-shape)
   (q/pop-style))
 
-(defn draw-splatter [points]
+(defn draw-splatter [points color]
   (q/begin-shape :points)
-  (q/stroke (q/color 255 0 0))
+  (apply q/stroke color)
   (doall (map (fn [[x y z i j k p]]
                 (q/stroke-weight p)
                 (q/vertex x y z))
               points))
   (q/end-shape))
+
+(defn draw-splats [splatter color]
+  (draw-splatter splatter color))
 
 (defn draw-layout [options]
   (q/push-style)
@@ -100,10 +104,11 @@
   (draw-layout options)
   (q/push-style)
   (let [paths (map :stroke @strokes)
-        splats (gen/paths-to-points (map :splatter @strokes))]
-    (if @draw-strokes? (doall (map draw-path paths)))
+        splats (map :splatter @strokes)
+        colors (map :color @strokes)]
+    (if @draw-strokes? (doall (map draw-path paths colors)))
     (if @draw-velocities? (doall (map draw-velocities paths)))
-    (if @draw-splats? (draw-splatter splats)))
+    (if @draw-splats? (doall (map draw-splats splats colors))))
   (q/pop-style))
 
 (defn setup [options]
